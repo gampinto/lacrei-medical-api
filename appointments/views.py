@@ -1,3 +1,25 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
-# Create your views here.
+from .models import Appointment, Professional
+from .serializers import AppointmentSerializer, ProfessionalSerializer
+
+
+class ProfessionalViewSet(viewsets.ModelViewSet):
+    queryset = Professional.objects.all()
+    serializer_class = ProfessionalSerializer
+
+
+class AppointmentViewSet(viewsets.ModelViewSet):
+
+    serializer_class = AppointmentSerializer
+
+    def get_queryset(self):
+        queryset = Appointment.objects.all()
+        professional_id = self.request.query_params.get("professional")
+
+        if professional_id:
+            queryset = queryset.filter(professional_id=professional_id)
+
+        return queryset
+    
+    
