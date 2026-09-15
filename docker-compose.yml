@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17
+    container_name: lacrei-medical-db
+    environment:
+      POSTGRES_DB: lacrei_medical
+      POSTGRES_USER: lacrei
+      POSTGRES_PASSWORD: lacrei_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+
