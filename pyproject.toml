@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.12"
 django = "^6.1.1"
 djangorestframework = "^3.18.1"
+psycopg = "^3.3.5"
 
 
 [build-system]
