@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from .models import Professional
 
@@ -130,3 +130,26 @@ class AppointmentAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("professional", response.data)
+
+
+class AuthenticationAPITests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        # Credenciais fictícias usadas exclusivamente nos testes automatizados.
+        self.user = get_user_model().objects.create_user(
+            username="testuser",
+            password="testpassword123",
+        )
+
+    def test_professionals_requires_authentication(self):
+        response = self.client.get("/api/professionals/")
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated_user_can_access_professionals(self):
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get("/api/professionals/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
