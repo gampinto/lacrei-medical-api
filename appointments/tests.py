@@ -18,7 +18,7 @@ class ProfessionalAPITests(APITestCase):
         self.professional_data = {
             "social_name": "Maria Silva",
             "profession": "Cardiologista",
-            "address": "Rua das Flores, 100",
+            "address": "Rua Inventada, 1",
             "contact": "21999999999",
         }
 
@@ -56,3 +56,77 @@ class ProfessionalAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("social_name", response.data)
+
+
+class AppointmentAPITests(APITestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="testuser",
+            password="testpassword123",
+        )
+
+        self.client.force_authenticate(user=self.user)
+
+        self.professional = Professional.objects.create(
+            social_name="Maria Silva",
+            profession="Cardiologista",
+            address="Rua das Flores, 100",
+            contact="21999999999",
+        )
+
+    def test_create_appointment(self):
+        response = self.client.post(
+            "/api/appointments/",
+            {
+                "date": "2099-10-03T14:30:00Z",
+                "professional": self.professional.id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_filter_appointments_by_professional(self):
+        response = self.client.post(
+            "/api/appointments/",
+            {
+                "date": "2099-10-03T14:30:00Z",
+                "professional": self.professional.id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(
+            f"/api/appointments/?professional={self.professional.id}"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_reject_past_appointment(self):
+        response = self.client.post(
+            "/api/appointments/",
+            {
+                "date": "1998-10-03T02:20:00Z",
+                "professional": self.professional.id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("date", response.data)
+
+    def test_reject_nonexistent_professional(self):
+        response = self.client.post(
+            "/api/appointments/",
+            {
+                "date": "2099-10-03T14:30:00Z",
+                "professional": 999999,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("professional", response.data)
