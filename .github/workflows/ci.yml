@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, testes e build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: lacrei_medical
+          POSTGRES_USER: lacrei
+          POSTGRES_PASSWORD: lacrei_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lacrei -d lacrei_medical"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SECRET_KEY: ci-secret-key-for-tests-only
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      POSTGRES_DB: lacrei_medical
+      POSTGRES_USER: lacrei
+      POSTGRES_PASSWORD: lacrei_password
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: 5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configurar Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Poetry
+        run: pip install poetry==1.8.2
+
+      - name: Instalar dependências
+        run: poetry install --no-interaction
+
+      - name: Executar lint
+        run: poetry run ruff check .
+
+      - name: Verificar Django
+        run: poetry run python manage.py check
+
+      - name: Executar testes
+        run: poetry run python manage.py test
+
+      - name: Construir imagem Docker
+        run: docker build -t lacrei-medical-api:test .
