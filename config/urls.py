@@ -5,7 +5,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+from config.health import health
+
 urlpatterns = [
+    path("health/", health, name="health"),
     path("admin/", admin.site.urls),
     path("api/", include("appointments.urls")),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
