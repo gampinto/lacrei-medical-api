@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'appointments',
     "rest_framework",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
@@ -53,6 +54,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ),
         "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
+        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Lacrei Medical API",
+    "DESCRIPTION": "API RESTful para gerenciamento de profissionais e consultas médicas.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 MIDDLEWARE = [
