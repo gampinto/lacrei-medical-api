@@ -57,6 +57,52 @@ class ProfessionalAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("social_name", response.data)
 
+    def test_retrieve_professional(self):
+        professional = Professional.objects.create(
+            **self.professional_data
+        )
+
+        response = self.client.get(
+            f"/api/professionals/{professional.id}/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], professional.id)
+
+    def test_update_professional(self):
+        professional = Professional.objects.create(
+            **self.professional_data
+        )
+
+        updated_data = self.professional_data.copy()
+        updated_data["profession"] = "Neurologista"
+
+        response = self.client.put(
+            f"/api/professionals/{professional.id}/",
+            updated_data,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["profession"],
+            "Neurologista",
+        )
+
+    def test_delete_professional(self):
+        professional = Professional.objects.create(
+            **self.professional_data
+        )
+
+        response = self.client.delete(
+            f"/api/professionals/{professional.id}/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(
+            Professional.objects.filter(id=professional.id).exists()
+        )
+
 
 class AppointmentAPITests(APITestCase):
     def setUp(self):
@@ -131,6 +177,86 @@ class AppointmentAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("professional", response.data)
 
+    def test_retrieve_appointment(self):
+        create_response = self.client.post(
+            "/api/appointments/",
+            {
+                "date": "2099-10-03T14:30:00Z",
+                "professional": self.professional.id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        appointment_id = create_response.data["id"]
+
+        response = self.client.get(
+            f"/api/appointments/{appointment_id}/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], appointment_id)
+
+    def test_update_appointment(self):
+        create_response = self.client.post(
+            "/api/appointments/",
+            {
+                "date": "2099-10-03T14:30:00Z",
+                "professional": self.professional.id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        appointment_id = create_response.data["id"]
+
+        updated_data = {
+            "date": "2099-11-03T15:30:00Z",
+            "professional": self.professional.id,
+        }
+
+        response = self.client.put(
+            f"/api/appointments/{appointment_id}/",
+            updated_data,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["date"],
+            "2099-11-03T15:30:00Z",
+        )
+
+    def test_delete_appointment(self):
+        create_response = self.client.post(
+            "/api/appointments/",
+            {
+                "date": "2099-10-03T14:30:00Z",
+                "professional": self.professional.id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        appointment_id = create_response.data["id"]
+
+        response = self.client.delete(
+            f"/api/appointments/{appointment_id}/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 class AuthenticationAPITests(APITestCase):
     def setUp(self):
