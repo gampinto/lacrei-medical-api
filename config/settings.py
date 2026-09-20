@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'appointments',
     "rest_framework",
     "drf_spectacular",
+    "corsheaders",
 ]
 
 REST_FRAMEWORK = {
@@ -72,7 +73,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in config(
+        "CORS_ALLOWED_ORIGINS",
+        default="http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
+
+CORS_ALLOW_CREDENTIALS = False
 
 ROOT_URLCONF = 'config.urls'
 
